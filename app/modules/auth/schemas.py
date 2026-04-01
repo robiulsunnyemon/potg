@@ -1,3 +1,4 @@
+from __future__ import annotations
 import re
 from typing import Optional
 from pydantic import BaseModel, EmailStr, Field, constr, field_validator
@@ -38,6 +39,7 @@ class TokenResponse(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int
+    user: Optional[UserResponse] = None
 
 class ResetTokenResponse(BaseModel):
     reset_token: str

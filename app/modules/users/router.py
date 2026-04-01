@@ -18,6 +18,12 @@ async def get_users(
     users_data = await user_service.get_users(page, size)
     return create_response(data=users_data)
 
+@router.get("/me", response_model=ResponseSchema[UserResponse])
+async def get_current_user(current_user: CurrentUserDep):
+    """[User Only] Fetch the profile of the currently authenticated user."""
+    user_data = await user_service.get_user_by_id(current_user.id)
+    return create_response(data=user_data)
+
 @router.post("/profile-image", response_model=ResponseSchema[str])
 async def upload_image(
     current_user: CurrentUserDep,
@@ -47,14 +53,19 @@ async def get_user(user_id: str, current_user: CurrentUserDep):
     user_data = await user_service.get_user_by_id(user_id)
     return create_response(data=user_data)
 
-@router.patch("/{user_id}", response_model=ResponseSchema[str])
+@router.patch("/profile", response_model=ResponseSchema[str])
 async def update_user(
-    user_id: str,
     data: UpdateUserRequest,
     current_user: CurrentUserDep
 ):
     """[User Only] Update own profile (name, phone number)"""
-    message = await user_service.update_user(user_id, current_user.id, data)
+    message = await user_service.update_user(current_user.id, data)
+    return create_response(data=message)
+
+@router.delete("/me", response_model=ResponseSchema[str])
+async def delete_current_user(current_user: CurrentUserDep):
+    """[User Only] Soft delete the currently authenticated user account."""
+    message = await user_service.delete_user(current_user.id)
     return create_response(data=message)
 
 @router.delete("/{user_id}", response_model=ResponseSchema[str])

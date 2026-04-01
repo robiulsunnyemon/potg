@@ -85,7 +85,8 @@ class AuthService:
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
-            expires_in=settings.ACCESS_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+            expires_in=settings.ACCESS_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+            user=UserResponse.model_validate(user)
         )
 
     async def refresh_token(self, old_refresh_token: str) -> TokenResponse:
@@ -136,7 +137,8 @@ class AuthService:
         return TokenResponse(
             access_token=new_access_token,
             refresh_token=new_refresh_token,
-            expires_in=settings.ACCESS_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+            expires_in=settings.ACCESS_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+            user=UserResponse.model_validate(user)
         )
 
     async def resend_otp(self, email: str, purpose: OtpPurpose) -> str:

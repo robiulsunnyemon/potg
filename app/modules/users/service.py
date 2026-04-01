@@ -27,11 +27,7 @@ class UserService:
             raise NotFoundException("User not found.")
         return user.model_dump()
 
-    async def update_user(self, user_id: str, current_user_id: str, data: UpdateUserRequest) -> str:
-        # User can only update their own profile
-        if user_id != current_user_id:
-            raise ForbiddenException("You can only modify your own profile.")
-            
+    async def update_user(self, user_id: str, data: UpdateUserRequest) -> str:
         user = await prisma.user.find_first(
             where={"id": user_id, "isDeleted": False}
         )
