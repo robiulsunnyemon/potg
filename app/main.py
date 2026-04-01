@@ -1,0 +1,48 @@
+
+import logging
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import settings
+from app.core.database import connect_db, disconnect_db
+from app.modules.auth.router import router as auth_router
+from app.modules.users.router import router as users_router
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    logger.info("Connecting to database...")
+    await connect_db()
+    logger.info("Database connected.")
+    yield
+    # Shutdown
+    logger.info("Disconnecting from database...")
+    await disconnect_db()
+    logger.info("Database disconnected.")
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    description="POTG - FastAPI Authentication Service",
+    lifespan=lifespan,
+)
+
+# CORS Middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include Routers
+app.include_router(auth_router)
+app.include_router(users_router)
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to POTG App Authentication API"}

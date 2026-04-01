@@ -1,0 +1,74 @@
+generator client {
+  provider             = "prisma-client-py"
+  interface            = "asyncio"
+  recursive_type_depth = 5
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model User {
+  id          String   @id @default(uuid())
+  fullName    String
+  email       String   @unique
+  phoneNumber String   @unique
+  password    String
+  isVerified  Boolean    @default(false)
+  status      UserStatus @default(INACTIVE)
+  isDeleted   Boolean    @default(false)
+  role        Role       @default(USER)
+  balance     Int        @default(100)
+  profileImage String?
+  isPremium   Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime @updatedAt
+
+  otpCodes OtpCode[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  isRevoked Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model OtpCode {
+  id        String   @id @default(uuid())
+  userId    String
+  code      String
+  purpose   OtpPurpose
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("otp_codes")
+}
+
+enum OtpPurpose {
+  EMAIL_VERIFICATION
+  FORGET_PASSWORD
+}
