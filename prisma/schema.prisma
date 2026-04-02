@@ -35,10 +35,25 @@ model User {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime @updatedAt
 
-  otpCodes OtpCode[]
+  otpCodes      OtpCode[]
   refreshTokens RefreshToken[]
+  transactions  Transaction[]
 
   @@map("users")
+}
+
+model Transaction {
+  id        String   @id @default(uuid())
+  userId    String
+  seriesId  String?
+  episodeId String?
+  amount    Int
+  createdAt DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id])
+  episode Episode? @relation(fields: [episodeId], references: [id])
+
+  @@map("transactions")
 }
 
 model RefreshToken {
@@ -71,4 +86,72 @@ model OtpCode {
 enum OtpPurpose {
   EMAIL_VERIFICATION
   FORGET_PASSWORD
+}
+
+enum EpisodeUnlockMethod {
+  FREE
+  COIN
+  MEMBER
+}
+
+enum AccessControlStatus {
+  PUBLIC
+  MEMBER
+}
+
+model Category {
+  id      String   @id @default(uuid())
+  name    String   @unique
+  series  Series[]
+  
+  @@map("categories")
+}
+
+model Language {
+  id      String   @id @default(uuid())
+  name    String   @unique
+  series  Series[]
+  
+  @@map("languages")
+}
+
+model Series {
+  id                  String               @id @default(uuid())
+  title               String
+  description         String
+  categoryId          String
+  languageId          String
+  keywords            String?
+  thumbnail           String?
+  freeEpisodeLimit    Int?                 @default(0)
+  episodeUnlockMethod EpisodeUnlockMethod  @default(FREE)
+  coinPerEpisode      Int?                 @default(0)
+  accessControlStatus AccessControlStatus  @default(PUBLIC)
+  isSensitiveContent  Boolean              @default(false)
+  tags                String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  category            Category             @relation(fields: [categoryId], references: [id])
+  language            Language             @relation(fields: [languageId], references: [id])
+  episodes            Episode[]
+
+  @@map("series")
+}
+
+model Episode {
+  id                  String   @id @default(uuid())
+  title               String
+  seriesId            String
+  description         String
+  episodeSerialNumber Int
+  thumbnail           String?
+  videoFile           String
+  resolution          String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  series              Series   @relation(fields: [seriesId], references: [id])
+
+  @@map("episodes")
 }

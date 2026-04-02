@@ -40,31 +40,67 @@ async def main() -> None:
     else:
         print("⚡ Admin already exists, skipping...")
 
-    print("\n👥 Seeding 10 Normal Users...")
-    user_password = hash_password("User@12345")
-    
-    for i in range(1, 11):
-        email = f"user{i}@potg.com"
-        phone = f"0180000{i:04d}"
-        
-        # Check if user already exists
-        user_exists = await prisma.user.find_first(where={"email": email})
-        if not user_exists:
-            user = await prisma.user.create(
+    print("\n📦 Seeding Categories...")
+    categories = ["Action", "Drama", "Comedy", "Thriller", "Kids"]
+    category_ids = []
+    for cat_name in categories:
+        cat = await prisma.category.upsert(
+            where={"name": cat_name},
+            data={"create": {"name": cat_name}, "update": {}}
+        )
+        category_ids.append(cat.id)
+        print(f"✅ Category: {cat_name}")
+
+    print("\n🌐 Seeding Languages...")
+    languages = ["English", "Bangla"]
+    language_ids = []
+    for lang_name in languages:
+        lang = await prisma.language.upsert(
+            where={"name": lang_name},
+            data={"create": {"name": lang_name}, "update": {}}
+        )
+        language_ids.append(lang.id)
+        print(f"✅ Language: {lang_name}")
+
+    print("\n📺 Seeding 5 Series...")
+    from prisma.enums import EpisodeUnlockMethod, AccessControlStatus
+    series_ids = []
+    for i in range(1, 6):
+        title = f"Amazing Series {i}"
+        series = await prisma.series.create(
+            data={
+                "title": title,
+                "description": f"This is the description for {title}. It's a very interesting series with lots of twists.",
+                "categoryId": random.choice(category_ids),
+                "languageId": random.choice(language_ids),
+                "keywords": "thriller, mystery, fun",
+                "thumbnail": f"https://picsum.photos/seed/series{i}/400/600",
+                "freeEpisodeLimit": 1,
+                "episodeUnlockMethod": random.choice([EpisodeUnlockMethod.FREE, EpisodeUnlockMethod.COIN]),
+                "coinPerEpisode": 10 if i % 2 == 0 else 0,
+                "accessControlStatus": AccessControlStatus.PUBLIC,
+                "isSensitiveContent": False,
+                "tags": "popular, trending"
+            }
+        )
+        series_ids.append(series.id)
+        print(f"✅ Series created: {series.title}")
+
+    print("\n🎬 Seeding 3 Episodes per Series...")
+    for s_id in series_ids:
+        for j in range(1, 4):
+            episode = await prisma.episode.create(
                 data={
-                    "fullName": f"Test User {i}",
-                    "email": email,
-                    "phoneNumber": phone,
-                    "password": user_password,
-                    "role": Role.USER,
-                    "isVerified": True,
-                    "status": random.choice([UserStatus.ACTIVE, UserStatus.INACTIVE]), # Mix of active and inactive
-                    "profileImage": f"https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg",
+                    "title": f"Episode {j}",
+                    "seriesId": s_id,
+                    "description": f"In this episode {j}, things get even more exciting.",
+                    "episodeSerialNumber": j,
+                    "thumbnail": f"https://picsum.photos/seed/episode{s_id[:4]}{j}/800/450",
+                    "videoFile": "https://res.cloudinary.com/demo/video/upload/v1600000000/sample.mp4",
+                    "resolution": "1080p"
                 }
             )
-            print(f"✅ User created: {user.email}")
-        else:
-            print(f"⚡ User {email} already exists, skipping...")
+            print(f"   ✅ Episode {j} for Series {s_id[:8]}...")
 
     print("\n🎉 Seeding completed successfully!")
     await prisma.disconnect()

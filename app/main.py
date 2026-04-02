@@ -7,6 +7,10 @@ from app.core.config import settings
 from app.core.database import connect_db, disconnect_db
 from app.modules.auth.router import router as auth_router
 from app.modules.users.router import router as users_router
+from app.modules.category.router import router as category_router
+from app.modules.language.router import router as language_router
+from app.modules.series.router import router as series_router
+from app.modules.episode.router import router as episode_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -42,6 +46,10 @@ app.add_middleware(
 # Include Routers
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(category_router)
+app.include_router(language_router)
+app.include_router(series_router)
+app.include_router(episode_router)
 
 @app.get("/")
 async def root():

@@ -30,3 +30,19 @@ async def upload_image_to_cloudinary(file_content: bytes, filename: str) -> str:
     except Exception as e:
         logger.error(f"Error uploading image to Cloudinary: {e}")
         raise ValueError("Failed to upload image. Please check configuration.")
+
+async def upload_video_to_cloudinary(file_content: bytes, filename: str) -> str:
+    """
+    Uploads a video file directly to Cloudinary and returns the secure URL.
+    """
+    try:
+        response = cloudinary.uploader.upload(
+            file_content,
+            resource_type="video",
+            folder="potg_episodes",
+            public_id=filename.split(".")[0]
+        )
+        return response.get("secure_url")
+    except Exception as e:
+        logger.error(f"Error uploading video to Cloudinary: {e}")
+        raise ValueError("Failed to upload video. Please check configuration.")
