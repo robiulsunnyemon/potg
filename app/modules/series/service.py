@@ -17,9 +17,11 @@ class SeriesService:
             
         return await prisma.series.create(data=data.model_dump())
 
-    async def get_series_list(self, page: int = 1, size: int = 10) -> dict:
+    async def get_series_list(self, page: int = 1, size: int = 10, category_id: Optional[str] = None) -> dict:
         skip = (page - 1) * size
         where = {}
+        if category_id:
+            where["categoryId"] = category_id
             
         total_series = await prisma.series.count(where=where)
         series_list = await prisma.series.find_many(

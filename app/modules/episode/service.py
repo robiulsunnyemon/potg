@@ -23,10 +23,61 @@ class EpisodeService:
             order={"episodeSerialNumber": "asc"}
         )
 
-    async def get_episode(self, episode_id: str) -> dict:
-        episode = await prisma.episode.find_unique(where={"id": episode_id})
+    async def get_episode(self, episode_id: str, current_user: any) -> dict:
+        from prisma.enums import Role, AccessControlStatus, EpisodeUnlockMethod
+        from app.common.exceptions import ForbiddenException
+
+        episode = await prisma.episode.find_unique(
+            where={"id": episode_id},
+            include={"series": True}
+        )
         if not episode:
             raise NotFoundException("Episode not found")
+
+        series = episode.series
+
+        # 1. Admin gets all access
+        if current_user.role == Role.ADMIN:
+            return episode
+
+        # 2. Check if episode is within free limit
+        if episode.episodeSerialNumber <= (series.freeEpisodeLimit or 0):
+            return episode
+
+        # 3. Check Access Control Status (MEMBER restriction)
+        if series.accessControlStatus == AccessControlStatus.MEMBER:
+            if not current_user.isPremium:
+                raise ForbiddenException("This series is for premium members only.")
+
+        # 4. Check Unlock Method (COIN)
+        if series.episodeUnlockMethod == EpisodeUnlockMethod.COIN:
+            # Check if already unlocked
+            transaction = await prisma.transaction.find_first(
+                where={
+                    "userId": current_user.id,
+                    "episodeId": episode_id
+                }
+            )
+            if not transaction:
+                # Deduct coin and Create Transaction record
+                coin_needed = series.coinPerEpisode or 0
+                if current_user.balance < coin_needed:
+                    raise ForbiddenException(f"Insufficient balance. You need {coin_needed} coins to unlock this episode.")
+
+                # Atomic balance deduction and transaction record
+                await prisma.user.update(
+                    where={"id": current_user.id},
+                    data={"balance": {"decrement": coin_needed}}
+                )
+                await prisma.transaction.create(
+                    data={
+                        "userId": current_user.id,
+                        "episodeId": episode_id,
+                        "seriesId": series.id,
+                        "amount": coin_needed
+                    }
+                )
+        
         return episode
 
     async def update_episode(self, episode_id: str, data: EpisodeUpdate) -> dict:

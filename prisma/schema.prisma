@@ -152,6 +152,7 @@ model Episode {
   updatedAt           DateTime @updatedAt
 
   series              Series   @relation(fields: [seriesId], references: [id])
+  transactions        Transaction[]
 
   @@map("episodes")
 }

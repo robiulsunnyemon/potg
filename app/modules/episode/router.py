@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status, File, UploadFile, Form
 from app.modules.episode.service import EpisodeService
 from app.modules.episode.schemas import EpisodeCreate, EpisodeUpdate, EpisodeResponse
 from app.common.response import ResponseSchema, create_response
-from app.core.dependencies import CurrentAdminDep
+from app.core.dependencies import CurrentAdminDep, CurrentUserDep
 from typing import List, Optional
 import json
 
@@ -43,9 +43,9 @@ async def list_episodes(series_id: str):
     return create_response(data=episodes)
 
 @router.get("/{episode_id}", response_model=ResponseSchema[EpisodeResponse])
-async def get_episode(episode_id: str):
-    """Fetch details of a single episode."""
-    episode = await episode_service.get_episode(episode_id)
+async def get_episode(episode_id: str, current_user: CurrentUserDep):
+    """Fetch details of a single episode with access control."""
+    episode = await episode_service.get_episode(episode_id, current_user)
     return create_response(data=episode)
 
 @router.patch("/{episode_id}", response_model=ResponseSchema[EpisodeResponse])

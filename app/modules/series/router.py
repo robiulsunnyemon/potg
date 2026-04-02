@@ -23,6 +23,16 @@ async def list_series(
     series_data = await series_service.get_series_list(page, size)
     return create_response(data=series_data)
 
+@router.get("/category/{category_id}", response_model=ResponseSchema[PaginatedSeriesResponse])
+async def list_series_by_category(
+    category_id: str,
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100)
+):
+    """Fetch series filtered by category with pagination and sorting."""
+    series_data = await series_service.get_series_list(page, size, category_id)
+    return create_response(data=series_data)
+
 @router.get("/{series_id}", response_model=ResponseSchema[SeriesResponse])
 async def get_series(series_id: str):
     """Fetch details of a single series."""
