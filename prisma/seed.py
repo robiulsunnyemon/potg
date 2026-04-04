@@ -92,11 +92,14 @@ async def main() -> None:
             episode = await prisma.episode.create(
                 data={
                     "title": f"Episode {j}",
-                    "seriesId": s_id,
+                    "series": {
+                        "connect": {
+                            "id": s_id
+                        }
+                    },
                     "description": f"In this episode {j}, things get even more exciting.",
                     "episodeSerialNumber": j,
                     "thumbnail": f"https://picsum.photos/seed/episode{s_id[:4]}{j}/800/450",
-                    "videoFile": "https://res.cloudinary.com/demo/video/upload/v1600000000/sample.mp4",
                     "resolution": "1080p"
                 }
             )
