@@ -11,6 +11,7 @@ from app.modules.category.router import router as category_router
 from app.modules.language.router import router as language_router
 from app.modules.series.router import router as series_router
 from app.modules.episode.router import router as episode_router
+from app.modules.user_activity.router import router as user_activity_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -50,6 +51,7 @@ app.include_router(category_router)
 app.include_router(language_router)
 app.include_router(series_router)
 app.include_router(episode_router)
+app.include_router(user_activity_router)
 
 @app.get("/")
 async def root():

@@ -38,8 +38,22 @@ model User {
   refreshTokens RefreshToken[]
   transactions Transaction[]
   episodeViews EpisodeView[]
+  savedEpisodes SavedEpisode[]
 
   @@map("users")
+}
+
+model SavedEpisode {
+  id        String   @id @default(uuid())
+  userId    String
+  episodeId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  episode Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, episodeId])
+  @@map("saved_episodes")
 }
 
 model Transaction {
@@ -153,6 +167,7 @@ model Episode {
   series              Series        @relation(fields: [seriesId], references: [id])
   transactions        Transaction[]
   views               EpisodeView[]
+  savedBy             SavedEpisode[]
 
   @@map("episodes")
 }
