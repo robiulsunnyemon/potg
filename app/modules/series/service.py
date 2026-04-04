@@ -18,6 +18,7 @@ class SeriesService:
         return await prisma.series.create(data=data.model_dump())
 
     async def get_series_list(self, page: int = 1, size: int = 10, category_id: Optional[str] = None) -> dict:
+        from app.modules.rating.service import rating_service
         skip = (page - 1) * size
         where = {}
         if category_id:
@@ -31,21 +32,39 @@ class SeriesService:
             order={"createdAt": "desc"},
             include={"episodes": True}
         )
+        
+        # Inject rating stats for each series
+        enhanced_series_list = []
+        for s in series_list:
+            stats = await rating_service.get_series_rating_stats(s.id)
+            # Convert to dict and add extra fields
+            s_dict = s.model_dump()
+            s_dict["averageRating"] = stats["averageRating"]
+            s_dict["ratingCount"] = stats["ratingCount"]
+            enhanced_series_list.append(s_dict)
+
         return {
             "total": total_series,
             "page": page,
             "size": size,
-            "series": series_list
+            "series": enhanced_series_list
         }
 
     async def get_series(self, series_id: str) -> dict:
+        from app.modules.rating.service import rating_service
         series = await prisma.series.find_unique(
             where={"id": series_id},
             include={"category": True, "language": True, "episodes": True}
         )
         if not series:
             raise NotFoundException("Series not found")
-        return series
+        
+        stats = await rating_service.get_series_rating_stats(series_id)
+        series_dict = series.model_dump()
+        series_dict["averageRating"] = stats["averageRating"]
+        series_dict["ratingCount"] = stats["ratingCount"]
+        
+        return series_dict
 
     async def update_series(self, series_id: str, data: SeriesUpdate) -> dict:
         series = await prisma.series.find_unique(where={"id": series_id})

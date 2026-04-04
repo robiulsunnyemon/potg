@@ -1,7 +1,6 @@
 generator client {
   provider             = "prisma-client-py"
   interface            = "asyncio"
-  recursive_type_depth = 5
 }
 
 datasource db {
@@ -146,8 +145,23 @@ model Series {
   category            Category            @relation(fields: [categoryId], references: [id])
   language            Language            @relation(fields: [languageId], references: [id])
   episodes            Episode[]
+  ratings             Rating[]
 
   @@map("series")
+}
+
+model Rating {
+  id        String   @id @default(uuid())
+  userName  String
+  userImage String?
+  stars     Float
+  feedback  String
+  seriesId  String
+  isActive  Boolean  @default(true)
+  series    Series   @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("ratings")
 }
 
 model Episode {

@@ -1,0 +1,18 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.venv/
+.pytest_cache/
+.coverage
+.git
+.github/
+.vscode/
+.idea/
+
+# Prisma local client (it will be regenerated inside Linux docker)
+node_modules/
