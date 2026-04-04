@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, computed_field
 from typing import Optional, List
 from datetime import datetime
 from prisma.enums import EpisodeUnlockMethod, AccessControlStatus
@@ -39,14 +39,18 @@ class EpisodeSummaryResponse(BaseModel):
     description: str
     episodeSerialNumber: int
     thumbnail: Optional[str] = None
-    videoFile: Optional[str] = None
-    resolution: Optional[str] = None
+    muxAssetId: Optional[str] = None
+    muxPlaybackId: Optional[str] = None
+    duration: Optional[float] = None
+    isProcessing: bool = True
     createdAt: datetime
     updatedAt: datetime
 
-    @field_validator("videoFile", mode="before")
-    @classmethod
-    def force_null_video_file(cls, v):
+    @computed_field
+    @property
+    def hlsUrl(self) -> Optional[str]:
+        if self.muxPlaybackId:
+            return f"https://stream.mux.com/{self.muxPlaybackId}.m3u8"
         return None
 
     class Config:
@@ -55,9 +59,10 @@ class EpisodeSummaryResponse(BaseModel):
 class SeriesResponse(SeriesBase):
     id: str
     thumbnail: Optional[str] = None
+    totalViewers: int = 0
     createdAt: datetime
     updatedAt: datetime
-    episodes: List[EpisodeSummaryResponse] = []
+    episodes: Optional[List[EpisodeSummaryResponse]] = []
 
     class Config:
         from_attributes = True

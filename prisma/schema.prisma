@@ -20,24 +20,24 @@ enum UserStatus {
 }
 
 model User {
-  id          String   @id @default(uuid())
-  fullName    String
-  email       String   @unique
-  phoneNumber String   @unique
-  password    String
-  isVerified  Boolean    @default(false)
-  status      UserStatus @default(INACTIVE)
-  isDeleted   Boolean    @default(false)
-  role        Role       @default(USER)
-  balance     Int        @default(100)
+  id           String         @id @default(uuid())
+  fullName     String
+  email        String         @unique
+  phoneNumber  String         @unique
+  password     String
+  isVerified   Boolean        @default(false)
+  status       UserStatus     @default(INACTIVE)
+  isDeleted    Boolean        @default(false)
+  role         Role           @default(USER)
+  balance      Int            @default(100)
   profileImage String?
-  isPremium   Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime @updatedAt
-
-  otpCodes      OtpCode[]
+  isPremium    Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  otpCodes     OtpCode[]
   refreshTokens RefreshToken[]
-  transactions  Transaction[]
+  transactions Transaction[]
+  episodeViews EpisodeView[]
 
   @@map("users")
 }
@@ -49,9 +49,8 @@ model Transaction {
   episodeId String?
   amount    Int
   createdAt DateTime @default(now())
-
-  user    User     @relation(fields: [userId], references: [id])
-  episode Episode? @relation(fields: [episodeId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  episode   Episode? @relation(fields: [episodeId], references: [id])
 
   @@map("transactions")
 }
@@ -63,8 +62,7 @@ model RefreshToken {
   isRevoked Boolean  @default(false)
   expiresAt DateTime
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("refresh_tokens")
 }
@@ -75,10 +73,9 @@ model OtpCode {
   code      String
   purpose   OtpPurpose
   expiresAt DateTime
-  isUsed    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isUsed    Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("otp_codes")
 }
@@ -100,59 +97,73 @@ enum AccessControlStatus {
 }
 
 model Category {
-  id      String   @id @default(uuid())
-  name    String   @unique
-  series  Series[]
-  
+  id     String   @id @default(uuid())
+  name   String   @unique
+  series Series[]
+
   @@map("categories")
 }
 
 model Language {
-  id      String   @id @default(uuid())
-  name    String   @unique
-  series  Series[]
-  
+  id     String   @id @default(uuid())
+  name   String   @unique
+  series Series[]
+
   @@map("languages")
 }
 
 model Series {
-  id                  String               @id @default(uuid())
+  id                  String              @id @default(uuid())
   title               String
   description         String
+  totalViewers        Int                 @default(0)
   categoryId          String
   languageId          String
   keywords            String?
   thumbnail           String?
-  freeEpisodeLimit    Int?                 @default(0)
-  episodeUnlockMethod EpisodeUnlockMethod  @default(FREE)
-  coinPerEpisode      Int?                 @default(0)
-  accessControlStatus AccessControlStatus  @default(PUBLIC)
-  isSensitiveContent  Boolean              @default(false)
+  freeEpisodeLimit    Int?                @default(0)
+  episodeUnlockMethod EpisodeUnlockMethod @default(FREE)
+  coinPerEpisode      Int?                @default(0)
+  accessControlStatus AccessControlStatus @default(PUBLIC)
+  isSensitiveContent  Boolean             @default(false)
   tags                String?
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-
-  category            Category             @relation(fields: [categoryId], references: [id])
-  language            Language             @relation(fields: [languageId], references: [id])
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  category            Category            @relation(fields: [categoryId], references: [id])
+  language            Language            @relation(fields: [languageId], references: [id])
   episodes            Episode[]
 
   @@map("series")
 }
 
 model Episode {
-  id                  String   @id @default(uuid())
+  id                  String        @id @default(uuid())
   title               String
   seriesId            String
   description         String
   episodeSerialNumber Int
   thumbnail           String?
-  videoFile           String
-  resolution          String?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  series              Series   @relation(fields: [seriesId], references: [id])
+  muxAssetId          String?
+  muxPlaybackId       String?
+  duration            Float?
+  resolution          String?       @default("1080p")
+  isProcessing        Boolean       @default(true)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  series              Series        @relation(fields: [seriesId], references: [id])
   transactions        Transaction[]
+  views               EpisodeView[]
 
   @@map("episodes")
+}
+
+model EpisodeView {
+  id        String   @id @default(uuid())
+  episodeId String
+  userId    String
+  createdAt DateTime @default(now())
+  episode   Episode  @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("episode_views")
 }

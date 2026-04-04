@@ -4,16 +4,24 @@ from app.common.exceptions import NotFoundException, BadRequestException
 from typing import List, Optional
 
 class EpisodeService:
-    async def create_episode(self, data: EpisodeCreate, video_url: str) -> dict:
+    async def create_episode(self, data: EpisodeCreate, video_content: bytes, filename: str) -> dict:
+        from app.core.mux import upload_video_to_mux
+        
         # Verify series exists
         series = await prisma.series.find_unique(where={"id": data.seriesId})
         if not series:
             raise NotFoundException("Series not found")
             
+        # Upload to Mux
+        mux_data = await upload_video_to_mux(video_content)
+            
         return await prisma.episode.create(
             data={
                 **data.model_dump(),
-                "videoFile": video_url
+                "muxAssetId": mux_data["asset_id"],
+                "muxPlaybackId": mux_data["playback_id"],
+                "duration": mux_data["duration"],
+                "isProcessing": False # Set to false since we've got the IDs
             }
         )
 
@@ -22,6 +30,31 @@ class EpisodeService:
             where={"seriesId": series_id},
             order={"episodeSerialNumber": "asc"}
         )
+    
+    async def record_view(self, episode_id: str, user_id: str) -> dict:
+        """Records a view for the episode and increments series totalViewers."""
+        episode = await prisma.episode.find_unique(
+            where={"id": episode_id},
+            include={"series": True}
+        )
+        if not episode:
+            raise NotFoundException("Episode not found")
+        
+        # Create view record
+        view = await prisma.episodeview.create(
+            data={
+                "episodeId": episode_id,
+                "userId": user_id
+            }
+        )
+        
+        # Increment totalViewers in Series
+        await prisma.series.update(
+            where={"id": episode.seriesId},
+            data={"totalViewers": {"increment": 1}}
+        )
+        
+        return view
 
     async def get_episode(self, episode_id: str, current_user: any) -> dict:
         from prisma.enums import Role, AccessControlStatus, EpisodeUnlockMethod
@@ -90,21 +123,6 @@ class EpisodeService:
             where={"id": episode_id},
             data=update_data
         )
-
-    async def upload_thumbnail(self, episode_id: str, file_content: bytes, filename: str) -> str:
-        from app.core.upload import upload_image_to_cloudinary
-        
-        episode = await prisma.episode.find_unique(where={"id": episode_id})
-        if not episode:
-            raise NotFoundException("Episode not found")
-            
-        image_url = await upload_image_to_cloudinary(file_content, filename)
-        
-        await prisma.episode.update(
-            where={"id": episode_id},
-            data={"thumbnail": image_url}
-        )
-        return image_url
 
     async def delete_episode(self, episode_id: str) -> str:
         episode = await prisma.episode.find_unique(where={"id": episode_id})

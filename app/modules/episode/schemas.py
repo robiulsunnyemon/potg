@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 from typing import Optional
 from datetime import datetime
 
@@ -9,8 +9,13 @@ class EpisodeBase(BaseModel):
     episodeSerialNumber: int
     resolution: Optional[str] = "1080p"
 
-class EpisodeCreate(EpisodeBase):
-    pass
+class EpisodeCreate(BaseModel):
+    title: str
+    seriesId: str
+    description: str
+    episodeSerialNumber: int
+    thumbnail: Optional[str] = None
+    resolution: Optional[str] = "1080p"
 
 class EpisodeUpdate(BaseModel):
     title: Optional[str] = None
@@ -23,12 +28,31 @@ class EpisodeUpdate(BaseModel):
 class EpisodeResponse(EpisodeBase):
     id: str
     thumbnail: Optional[str] = None
-    videoFile: str
+    muxAssetId: Optional[str] = None
+    muxPlaybackId: Optional[str] = None
+    duration: Optional[float] = None
+    isProcessing: bool = True
     createdAt: datetime
     updatedAt: datetime
+
+    @computed_field
+    @property
+    def hlsUrl(self) -> Optional[str]:
+        if self.muxPlaybackId:
+            return f"https://stream.mux.com/{self.muxPlaybackId}.m3u8"
+        return None
 
     class Config:
         from_attributes = True
         json_encoders = {
             datetime: lambda v: v.isoformat()
         }
+
+class EpisodeViewResponse(BaseModel):
+    id: str
+    episodeId: str
+    userId: str
+    createdAt: datetime
+
+    class Config:
+        from_attributes = True

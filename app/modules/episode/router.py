@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, status, File, UploadFile, Form
 from app.modules.episode.service import EpisodeService
-from app.modules.episode.schemas import EpisodeCreate, EpisodeUpdate, EpisodeResponse
+from app.modules.episode.schemas import EpisodeCreate, EpisodeUpdate, EpisodeResponse, EpisodeViewResponse
 from app.common.response import ResponseSchema, create_response
 from app.core.dependencies import CurrentAdminDep, CurrentUserDep
 from typing import List, Optional
@@ -12,29 +12,47 @@ episode_service = EpisodeService()
 @router.post("", response_model=ResponseSchema[EpisodeResponse], status_code=status.HTTP_201_CREATED)
 async def create_episode(
     admin: CurrentAdminDep,
-    data: str = Form(...),
+    title: str = Form(...),
+    seriesId: str = Form(...),
+    description: str = Form(...),
+    episodeSerialNumber: int = Form(...),
+    resolution: Optional[str] = Form("1080p"),
+    thumbnail: UploadFile = File(...),
     video: UploadFile = File(...)
 ):
-    """[Admin Only] Create a new episode with video upload."""
-    from app.core.upload import upload_video_to_cloudinary
+    """[Admin Only] Create a new episode with both thumbnail and video uploads."""
+    from app.core.upload import upload_image_to_cloudinary
+    from app.common.exceptions import BadRequestException
     
-    # Parse json data from form field
-    try:
-        episode_data_dict = json.loads(data)
-        episode_create = EpisodeCreate(**episode_data_dict)
-    except Exception as e:
-        from app.common.exceptions import BadRequestException
-        raise BadRequestException(f"Invalid episode data format: {e}")
-        
+    # Validation
     if not video.content_type.startswith("video/"):
-        from app.common.exceptions import BadRequestException
-        raise BadRequestException("File provided is not a video.")
+        raise BadRequestException("File provided for 'video' is not a video.")
+    if not thumbnail.content_type.startswith("image/"):
+        raise BadRequestException("File provided for 'thumbnail' is not an image.")
         
-    video_content = await video.read()
-    video_url = await upload_video_to_cloudinary(video_content, video.filename)
+    # Upload Thumbnail to Cloudinary
+    thumbnail_content = await thumbnail.read()
+    thumbnail_url = await upload_image_to_cloudinary(thumbnail_content, thumbnail.filename)
+        
+    episode_create = EpisodeCreate(
+        title=title,
+        seriesId=seriesId,
+        description=description,
+        episodeSerialNumber=episodeSerialNumber,
+        thumbnail=thumbnail_url,
+        resolution=resolution
+    )
     
-    episode = await episode_service.create_episode(episode_create, video_url)
-    return create_response(data=episode, message="Episode created successfully with video upload")
+    # Upload Video to Cloudflare Stream (Service handles this)
+    video_content = await video.read()
+    episode = await episode_service.create_episode(episode_create, video_content, video.filename)
+    return create_response(data=episode, message="Episode created successfully with video and thumbnail")
+
+@router.post("/{episode_id}/view", response_model=ResponseSchema[EpisodeViewResponse])
+async def record_view(episode_id: str, user: CurrentUserDep):
+    """Record a view for the episode and increment series total views."""
+    view = await episode_service.record_view(episode_id, user.id)
+    return create_response(data=view, message="View recorded successfully")
 
 @router.get("/series/{series_id}", response_model=ResponseSchema[List[EpisodeResponse]])
 async def list_episodes(series_id: str):
@@ -53,21 +71,6 @@ async def update_episode(episode_id: str, data: EpisodeUpdate, admin: CurrentAdm
     """[Admin Only] Update an existing episode info."""
     episode = await episode_service.update_episode(episode_id, data)
     return create_response(data=episode, message="Episode updated successfully")
-
-@router.post("/{episode_id}/thumbnail", response_model=ResponseSchema[str])
-async def upload_thumbnail(
-    episode_id: str,
-    admin: CurrentAdminDep,
-    file: UploadFile = File(...)
-):
-    """[Admin Only] Upload and update episode thumbnail."""
-    if not file.content_type.startswith("image/"):
-        from app.common.exceptions import BadRequestException
-        raise BadRequestException("File provided is not an image.")
-    
-    file_content = await file.read()
-    image_url = await episode_service.upload_thumbnail(episode_id, file_content, file.filename)
-    return create_response(data=image_url, message="Episode thumbnail uploaded successfully")
 
 @router.delete("/{episode_id}", response_model=ResponseSchema[str])
 async def delete_episode(episode_id: str, admin: CurrentAdminDep):
