@@ -104,7 +104,7 @@ async def main() -> None:
                     "muxAssetId": "QR8OVYbXpHksEfOYeXd3FT02h6kJ6BA0101DA9jgTp61LA",
                     "muxPlaybackId": "o5Lfd3eHEhVF24cKFJPU002bUSM013UTBmOXYKJ29A01SA",
                     "duration": 4.795867,
-                     "hlsUrl": "https://stream.mux.com/o5Lfd3eHEhVF24cKFJPU002bUSM013UTBmOXYKJ29A01SA.m3u8"
+                    "isProcessing": False
                 }
             )
             print(f"   ✅ Episode {j} for Series {s_id[:8]}...")
