@@ -54,6 +54,12 @@ async def record_view(episode_id: str, user: CurrentUserDep):
     view = await episode_service.record_view(episode_id, user.id)
     return create_response(data=view, message="View recorded successfully")
 
+@router.get("/free-list", response_model=ResponseSchema[List[EpisodeResponse]])
+async def get_all_free_episodes():
+    """Fetch all free episodes across all public/free series within their free limit."""
+    episodes = await episode_service.get_all_free_episodes()
+    return create_response(data=episodes)
+
 @router.get("/series/{series_id}", response_model=ResponseSchema[List[EpisodeResponse]])
 async def list_episodes(series_id: str):
     """Fetch all episodes for a specific series."""

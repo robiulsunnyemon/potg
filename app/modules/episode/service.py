@@ -56,6 +56,28 @@ class EpisodeService:
         
         return view
 
+    async def get_all_free_episodes(self) -> List[dict]:
+        from prisma.enums import EpisodeUnlockMethod
+        
+        series_list = await prisma.series.find_many(
+            include={"episodes": True}
+        )
+        
+        all_free_episodes = []
+        for series in series_list:
+            if series.episodeUnlockMethod == EpisodeUnlockMethod.FREE:
+                # FREE series: all episodes are free
+                all_free_episodes.extend(series.episodes)
+            else:
+                # COIN or MEMBER series: only up to freeEpisodeLimit
+                limit = series.freeEpisodeLimit or 0
+                if limit > 0:
+                    for episode in series.episodes:
+                        if episode.episodeSerialNumber <= limit:
+                            all_free_episodes.append(episode)
+                    
+        return all_free_episodes
+
     async def get_episode(self, episode_id: str, current_user: any) -> dict:
         from prisma.enums import Role, AccessControlStatus, EpisodeUnlockMethod
         from app.common.exceptions import ForbiddenException

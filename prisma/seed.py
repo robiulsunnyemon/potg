@@ -100,7 +100,11 @@ async def main() -> None:
                     "description": f"In this episode {j}, things get even more exciting.",
                     "episodeSerialNumber": j,
                     "thumbnail": f"https://picsum.photos/seed/episode{s_id[:4]}{j}/800/450",
-                    "resolution": "1080p"
+                    "resolution": "1080p",
+                    "muxAssetId": "QR8OVYbXpHksEfOYeXd3FT02h6kJ6BA0101DA9jgTp61LA",
+                    "muxPlaybackId": "o5Lfd3eHEhVF24cKFJPU002bUSM013UTBmOXYKJ29A01SA",
+                    "duration": 4.795867,
+                     "hlsUrl": "https://stream.mux.com/o5Lfd3eHEhVF24cKFJPU002bUSM013UTBmOXYKJ29A01SA.m3u8"
                 }
             )
             print(f"   ✅ Episode {j} for Series {s_id[:8]}...")
