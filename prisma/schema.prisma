@@ -226,3 +226,15 @@ model Notification {
 
   @@map("notifications")
 }
+
+model CoinPackage {
+  id           String   @id
+  packageName   String
+  baseCoins    Int
+  bonusCoins   Int      @default(0)
+  priceUsd     Float
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("coin_packages")
+}
