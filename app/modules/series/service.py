@@ -24,6 +24,10 @@ class SeriesService:
         if category_id:
             where["categoryId"] = category_id
             
+        # Default to PUBLISHED for non-dashboard use (this can be improved by checking roles)
+        # For now, let the dashboard pass an explicit filter if it wants DRAFT
+        # or we can add a 'show_drafts' parameter.
+            
         total_series = await prisma.series.count(where=where)
         series_list = await prisma.series.find_many(
             where=where,

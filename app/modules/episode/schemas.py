@@ -1,6 +1,7 @@
 from pydantic import BaseModel, computed_field
 from typing import Optional
 from datetime import datetime
+from prisma.enums import SeriesStatus
 
 class EpisodeBase(BaseModel):
     title: str
@@ -8,6 +9,7 @@ class EpisodeBase(BaseModel):
     description: str
     episodeSerialNumber: int
     resolution: Optional[str] = "1080p"
+    status: SeriesStatus = SeriesStatus.DRAFT
 
 class EpisodeCreate(BaseModel):
     title: str
@@ -16,6 +18,7 @@ class EpisodeCreate(BaseModel):
     episodeSerialNumber: int
     thumbnail: Optional[str] = None
     resolution: Optional[str] = "1080p"
+    status: SeriesStatus = SeriesStatus.DRAFT
 
 class EpisodeUpdate(BaseModel):
     title: Optional[str] = None
@@ -24,6 +27,7 @@ class EpisodeUpdate(BaseModel):
     thumbnail: Optional[str] = None
     videoFile: Optional[str] = None
     resolution: Optional[str] = None
+    status: Optional[SeriesStatus] = None
 
 class EpisodeResponse(EpisodeBase):
     id: str
@@ -32,6 +36,7 @@ class EpisodeResponse(EpisodeBase):
     muxPlaybackId: Optional[str] = None
     duration: Optional[float] = None
     isProcessing: bool = True
+    status: SeriesStatus = SeriesStatus.DRAFT
     createdAt: datetime
     updatedAt: datetime
 

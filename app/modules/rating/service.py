@@ -22,9 +22,13 @@ class RatingService:
             }
         )
 
-    async def get_series_ratings(self, series_id: str):
+    async def get_series_ratings(self, series_id: str, show_inactive: bool = False):
+        where={"seriesId": series_id}
+        if not show_inactive:
+            where["isActive"] = True
+            
         ratings = await prisma.rating.find_many(
-            where={"seriesId": series_id, "isActive": True},
+            where=where,
             order={"createdAt": "desc"}
         )
         
@@ -48,5 +52,15 @@ class RatingService:
             "averageRating": round(total_stars / count, 1),
             "ratingCount": count
         }
+
+    async def update_rating_status(self, rating_id: str, is_active: bool):
+        return await prisma.rating.update(
+            where={"id": rating_id},
+            data={"isActive": is_active}
+        )
+
+    async def delete_rating(self, rating_id: str):
+        await prisma.rating.delete(where={"id": rating_id})
+        return "Rating deleted successfully"
 
 rating_service = RatingService()

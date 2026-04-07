@@ -57,10 +57,11 @@ class EpisodeService:
         return view
 
     async def get_all_free_episodes(self) -> List[dict]:
-        from prisma.enums import EpisodeUnlockMethod
+        from prisma.enums import EpisodeUnlockMethod, SeriesStatus
         
         series_list = await prisma.series.find_many(
-            include={"episodes": True}
+            where={"status": SeriesStatus.PUBLISHED},
+            include={"episodes": {"where": {"status": SeriesStatus.PUBLISHED}}}
         )
         
         all_free_episodes = []

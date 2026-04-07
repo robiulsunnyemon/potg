@@ -19,7 +19,7 @@ from app.core.security import decode_token
 router = APIRouter(prefix="/auth", tags=["Auth"])
 auth_service = AuthService()
 
-@router.post("/signup", response_model=ResponseSchema[str], status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ResponseSchema[str], status_code=status.HTTP_201_CREATED)
 async def signup(data: SignupRequest):
     message = await auth_service.signup(data)
     return create_response(data=message)

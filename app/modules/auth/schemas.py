@@ -1,6 +1,7 @@
 from __future__ import annotations
 import re
 from typing import Optional
+from datetime import datetime as DateTime
 from pydantic import BaseModel, EmailStr, Field, constr, field_validator
 from prisma.enums import Role, UserStatus
 
@@ -33,6 +34,7 @@ class SignupRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+    isAdminLogin: Optional[bool] = False
 
 class TokenResponse(BaseModel):
     access_token: str
@@ -89,6 +91,7 @@ class UserResponse(BaseModel):
     isDeleted: bool
     role: Role
     isPremium: bool
+    createdAt: DateTime
 
     class Config:
         from_attributes = True

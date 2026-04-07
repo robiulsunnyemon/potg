@@ -63,7 +63,7 @@ async def main() -> None:
         print(f"✅ Language: {lang_name}")
 
     print("\n📺 Seeding 5 Series...")
-    from prisma.enums import EpisodeUnlockMethod, AccessControlStatus
+    from prisma.enums import EpisodeUnlockMethod, AccessControlStatus, SeriesStatus
     series_ids = []
     for i in range(1, 6):
         title = f"Amazing Series {i}"
@@ -80,6 +80,7 @@ async def main() -> None:
                 "coinPerEpisode": 10 if i % 2 == 0 else 0,
                 "accessControlStatus": AccessControlStatus.PUBLIC,
                 "isSensitiveContent": False,
+                "status": SeriesStatus.PUBLISHED if i % 2 == 0 else SeriesStatus.DRAFT,
                 "tags": "popular, trending"
             }
         )
@@ -104,7 +105,8 @@ async def main() -> None:
                     "muxAssetId": "QR8OVYbXpHksEfOYeXd3FT02h6kJ6BA0101DA9jgTp61LA",
                     "muxPlaybackId": "o5Lfd3eHEhVF24cKFJPU002bUSM013UTBmOXYKJ29A01SA",
                     "duration": 4.795867,
-                    "isProcessing": False
+                    "isProcessing": False,
+                    "status": SeriesStatus.PUBLISHED
                 }
             )
             print(f"   ✅ Episode {j} for Series {s_id[:8]}...")

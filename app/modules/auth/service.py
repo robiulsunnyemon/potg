@@ -63,6 +63,10 @@ class AuthService:
         if not verify_password(data.password, user.password):
             raise BadRequestException("Invalid email or password")
 
+        from prisma.enums import Role
+        if getattr(data, 'isAdminLogin', False) and user.role != Role.ADMIN:
+            raise ForbiddenException("Access denied. Only admins can login to the dashboard.")
+
         if not user.isVerified:
             raise ForbiddenException("Account not verified. Please verify your email first.")
 

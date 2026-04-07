@@ -18,6 +18,8 @@ enum UserStatus {
   INACTIVE
 }
 
+
+
 model User {
   id           String         @id @default(uuid())
   fullName     String
@@ -109,6 +111,11 @@ enum AccessControlStatus {
   MEMBER
 }
 
+enum SeriesStatus {
+  DRAFT
+  PUBLISHED
+}
+
 model Category {
   id     String   @id @default(uuid())
   name   String   @unique
@@ -138,6 +145,7 @@ model Series {
   episodeUnlockMethod EpisodeUnlockMethod @default(FREE)
   coinPerEpisode      Int?                @default(0)
   accessControlStatus AccessControlStatus @default(PUBLIC)
+  status              SeriesStatus        @default(DRAFT)
   isSensitiveContent  Boolean             @default(false)
   tags                String?
   createdAt           DateTime            @default(now())
@@ -176,6 +184,7 @@ model Episode {
   duration            Float?
   resolution          String?       @default("1080p")
   isProcessing        Boolean       @default(true)
+  status              SeriesStatus  @default(DRAFT)
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
   series              Series        @relation(fields: [seriesId], references: [id])
@@ -186,6 +195,8 @@ model Episode {
   @@map("episodes")
 }
 
+
+
 model EpisodeView {
   id        String   @id @default(uuid())
   episodeId String
@@ -195,4 +206,23 @@ model EpisodeView {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("episode_views")
+}
+
+enum TargetAudience {
+  ALL
+  FREE
+  VIP
+  INACTIVE
+  NEW
+}
+
+model Notification {
+  id              String         @id @default(uuid())
+  title           String
+  message         String
+  targetAudience  TargetAudience @default(ALL)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@map("notifications")
 }

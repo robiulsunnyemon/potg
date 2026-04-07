@@ -1,7 +1,7 @@
 from pydantic import BaseModel, field_validator, computed_field
 from typing import Optional, List
 from datetime import datetime
-from prisma.enums import EpisodeUnlockMethod, AccessControlStatus
+from prisma.enums import EpisodeUnlockMethod, AccessControlStatus, SeriesStatus
 
 class SeriesBase(BaseModel):
     title: str
@@ -13,6 +13,7 @@ class SeriesBase(BaseModel):
     episodeUnlockMethod: EpisodeUnlockMethod = EpisodeUnlockMethod.FREE
     coinPerEpisode: Optional[int] = 0
     accessControlStatus: AccessControlStatus = AccessControlStatus.PUBLIC
+    status: SeriesStatus = SeriesStatus.DRAFT
     isSensitiveContent: bool = False
     tags: Optional[str] = None
 
@@ -30,6 +31,7 @@ class SeriesUpdate(BaseModel):
     episodeUnlockMethod: Optional[EpisodeUnlockMethod] = None
     coinPerEpisode: Optional[int] = None
     accessControlStatus: Optional[AccessControlStatus] = None
+    status: Optional[SeriesStatus] = None
     isSensitiveContent: Optional[bool] = None
     tags: Optional[str] = None
 
@@ -43,6 +45,7 @@ class EpisodeSummaryResponse(BaseModel):
     muxPlaybackId: Optional[str] = None
     duration: Optional[float] = None
     isProcessing: bool = True
+    status: SeriesStatus = SeriesStatus.DRAFT
     createdAt: datetime
     updatedAt: datetime
 
