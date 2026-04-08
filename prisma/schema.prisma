@@ -40,6 +40,7 @@ model User {
   transactions Transaction[]
   episodeViews EpisodeView[]
   savedEpisodes SavedEpisode[]
+  rewardHistory UserRewardHistory[]
 
   @@map("users")
 }
@@ -237,4 +238,55 @@ model CoinPackage {
   updatedAt    DateTime @updatedAt
 
   @@map("coin_packages")
+}
+
+enum SubscriptionDuration {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+model SubscriptionPlan {
+  id           String               @id
+  packageName  String
+  planName     String
+  priceUsd     Float
+  duration     SubscriptionDuration
+  benefits     String[]
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@map("subscription_plans")
+}
+
+enum RewardDay {
+  DAY_ONE
+  DAY_TWO
+  DAY_THREE
+  DAY_FOUR
+  DAY_FIVE
+  DAY_SIX
+  DAY_SEVEN
+}
+
+model RewardSetting {
+  id         String    @id @default(uuid())
+  day        RewardDay @unique
+  coins      Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("reward_settings")
+}
+
+model UserRewardHistory {
+  id            String    @id @default(uuid())
+  userId        String
+  day           RewardDay
+  claimedDate   DateTime  @default(now())
+  coinsRewarded Int
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day])
+  @@map("user_reward_history")
 }
