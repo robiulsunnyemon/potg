@@ -290,3 +290,13 @@ model UserRewardHistory {
   @@unique([userId, day])
   @@map("user_reward_history")
 }
+
+model AppPage {
+  id        String   @id @default(uuid())
+  title     String   @unique
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("app_pages")
+}
