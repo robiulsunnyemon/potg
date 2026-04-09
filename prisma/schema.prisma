@@ -300,3 +300,13 @@ model AppPage {
 
   @@map("app_pages")
 }
+
+model Faq {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("faqs")
+}
