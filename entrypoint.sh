@@ -5,7 +5,7 @@ echo "=> Generating Prisma Client..."
 prisma generate
 
 echo "=> Syncing Database Schema..."
-prisma db push
+prisma db push --accept-data-loss
 
 echo "=> Running Seed Scripts..."
 if [ -f "seed_ratings.py" ]; then
