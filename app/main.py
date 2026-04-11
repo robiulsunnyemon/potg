@@ -19,6 +19,7 @@ from app.modules.subscriptions.router import router as subscriptions_router
 from app.modules.rewards.router import router as rewards_router
 from app.modules.settings.router import router as settings_router
 from app.modules.faq.router import router as faq_router
+from app.modules.purchases.router import router as purchases_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -66,6 +67,7 @@ app.include_router(subscriptions_router)
 app.include_router(rewards_router)
 app.include_router(settings_router)
 app.include_router(faq_router)
+app.include_router(purchases_router)
 
 @app.get("/")
 async def root():

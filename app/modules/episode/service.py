@@ -121,18 +121,24 @@ class EpisodeService:
                     raise ForbiddenException(f"Insufficient balance. You need {coin_needed} coins to unlock this episode.")
 
                 # Atomic balance deduction and transaction record
-                await prisma.user.update(
-                    where={"id": current_user.id},
-                    data={"balance": {"decrement": coin_needed}}
-                )
-                await prisma.transaction.create(
-                    data={
-                        "userId": current_user.id,
-                        "episodeId": episode_id,
-                        "seriesId": series.id,
-                        "amount": coin_needed
-                    }
-                )
+                async with prisma.tx() as tx:
+                    await tx.user.update(
+                        where={"id": current_user.id},
+                        data={"balance": {"decrement": coin_needed}}
+                    )
+                    from prisma.enums import TransactionType
+                    await tx.transaction.create(
+                        data={
+                            "userId": current_user.id,
+                            "episodeId": episode_id,
+                            "seriesId": series.id,
+                            "amount": coin_needed,
+                            "transactionType": TransactionType.SPEND,
+                            "description": f"Unlocked Episode: {episode.title}",
+                            "gateway": "INTERNAL",
+                            "status": "SUCCESS"
+                        }
+                    )
         
         return episode
 

@@ -80,20 +80,35 @@ class RewardsService:
         setting = await prisma.rewardsetting.find_unique(where={"day": current_day_enum})
         coins_to_award = setting.coins if setting else 0
 
-        # Create claim history
-        await prisma.userrewardhistory.create(
-            data={
-                "userId": user_id,
-                "day": current_day_enum,
-                "coinsRewarded": coins_to_award
-            }
-        )
+        # Use atomic transaction to update balance, internal history, and transaction logs
+        async with prisma.tx() as tx:
+            # Create claim history
+            await tx.userrewardhistory.create(
+                data={
+                    "userId": user_id,
+                    "day": current_day_enum,
+                    "coinsRewarded": coins_to_award
+                }
+            )
 
-        # Update user balance
-        updated_user = await prisma.user.update(
-            where={"id": user_id},
-            data={"balance": {"increment": coins_to_award}}
-        )
+            # Update user balance
+            updated_user = await tx.user.update(
+                where={"id": user_id},
+                data={"balance": {"increment": coins_to_award}}
+            )
+
+            # Create Transaction log
+            from prisma.enums import TransactionType
+            await tx.transaction.create(
+                data={
+                    "userId": user_id,
+                    "amount": coins_to_award,
+                    "transactionType": TransactionType.REWARD,
+                    "description": f"Daily Reward: {current_day_enum.name}",
+                    "gateway": "INTERNAL",
+                    "status": "SUCCESS"
+                }
+            )
 
         return {"message": "Reward claimed successfully", "coins": coins_to_award, "new_balance": updated_user.balance}
 

@@ -34,6 +34,12 @@ class Settings(BaseSettings):
     MUX_TOKEN_ID: str = ""
     MUX_TOKEN_SECRET: str = ""
 
+    # In-App Purchase Settings
+    ENABLE_MOCK_PAYMENT: bool = True
+    GOOGLE_PACKAGE_NAME: str = "com.potg.app"
+    GOOGLE_SERVICE_ACCOUNT_JSON: str = ""  # Path to JSON file
+    APPLE_SHARED_SECRET: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

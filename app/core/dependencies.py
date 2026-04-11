@@ -45,6 +45,19 @@ async def get_current_user(credentials: CredentialsDep):
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Account is inactive. Please verify your email.",
         )
+
+    # Check for subscription expiry
+    if user.isPremium and user.premiumUntil:
+        from datetime import datetime, timezone
+        if datetime.now(timezone.utc) > user.premiumUntil:
+            user = await prisma.user.update(
+                where={"id": user_id},
+                data={
+                    "isPremium": False,
+                    "premiumUntil": None
+                }
+            )
+
     return user
 
 

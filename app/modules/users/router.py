@@ -73,3 +73,18 @@ async def delete_user(user_id: str, current_admin: CurrentAdminDep):
     """[Admin Only] Soft delete a user by id."""
     message = await user_service.delete_user(user_id)
     return create_response(data=message)
+
+@router.get("/me/transactions", response_model=ResponseSchema[dict])
+async def get_my_transactions(
+    current_user: CurrentUserDep,
+    page: int = Query(1, ge=1),
+    size: int = Query(20, ge=1, le=100)
+):
+    """[User Only] Fetch the transaction history of the currently authenticated user."""
+    transactions = await user_service.get_user_transactions(current_user.id, page, size)
+    return create_response(data=transactions)
+@router.get("/me/total-purchased-coins", response_model=ResponseSchema[dict])
+async def get_total_purchased_coins(current_user: CurrentUserDep):
+    """[User Only] Fetch the total number of coins purchased by the user."""
+    result = await user_service.get_total_purchased_coins(current_user.id)
+    return create_response(data=result)

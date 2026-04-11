@@ -102,3 +102,46 @@ class UserService:
             data={"password": hashed_password}
         )
         return "Password successfully updated."
+
+    async def get_user_transactions(self, user_id: str, page: int = 1, size: int = 20) -> dict:
+        skip = (page - 1) * size
+        total = await prisma.transaction.count(where={"userId": user_id})
+        transactions = await prisma.transaction.find_many(
+            where={"userId": user_id},
+            skip=skip,
+            take=size,
+            order={"createdAt": "desc"}
+        )
+        return {
+            "total": total,
+            "page": page,
+            "size": size,
+            "transactions": transactions
+        }
+    async def get_total_purchased_coins(self, user_id: str) -> dict:
+        from prisma.enums import TransactionType
+        
+        # 1. Get total purchased coins (aggregate)
+        result = await prisma.transaction.group_by(
+            by=["userId"],
+            where={
+                "userId": user_id,
+                "transactionType": TransactionType.PURCHASE,
+                "status": "SUCCESS"
+            },
+            sum={"amount": True}
+        )
+        
+        total_purchased = 0
+        if result:
+            total_purchased = result[0].get("_sum", {}).get("amount", 0) or 0
+        
+        # 2. Get current live balance (from User model)
+        user = await prisma.user.find_unique(where={"id": user_id})
+        current_balance = user.balance if user else 0
+            
+        return {
+            "userId": user_id,
+            "totalPurchasedCoins": total_purchased,
+            "currentBalance": current_balance
+        }

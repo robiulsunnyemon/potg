@@ -91,6 +91,7 @@ class UserResponse(BaseModel):
     isDeleted: bool
     role: Role
     isPremium: bool
+    premiumUntil: Optional[DateTime] = None
     createdAt: DateTime
 
     class Config:

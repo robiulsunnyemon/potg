@@ -33,6 +33,7 @@ model User {
   balance      Int            @default(100)
   profileImage String?
   isPremium    Boolean        @default(false)
+  premiumUntil DateTime?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   otpCodes     OtpCode[]
@@ -58,15 +59,26 @@ model SavedEpisode {
   @@map("saved_episodes")
 }
 
+enum TransactionType {
+  PURCHASE
+  SPEND
+  REWARD
+}
+
 model Transaction {
-  id        String   @id @default(uuid())
-  userId    String
-  seriesId  String?
-  episodeId String?
-  amount    Int
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-  episode   Episode? @relation(fields: [episodeId], references: [id])
+  id              String          @id @default(uuid())
+  userId          String
+  seriesId        String?
+  episodeId       String?
+  amount          Int
+  transactionType TransactionType @default(SPEND)
+  description     String?
+  externalOrderId String?         @unique
+  gateway         String?         @default("INTERNAL")
+  status          String          @default("SUCCESS")
+  createdAt       DateTime        @default(now())
+  user            User            @relation(fields: [userId], references: [id])
+  episode         Episode?        @relation(fields: [episodeId], references: [id])
 
   @@map("transactions")
 }
