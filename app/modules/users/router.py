@@ -4,6 +4,8 @@ from app.modules.users.schemas import UpdateUserRequest, PaginatedUserResponse, 
 from app.modules.auth.schemas import UserResponse
 from app.common.response import ResponseSchema, create_response
 from app.core.dependencies import CurrentUserDep, CurrentAdminDep
+from typing import List, Optional, Any
+from prisma.enums import TransactionType
 
 router = APIRouter(prefix="/users", tags=["Users"])
 user_service = UserService()
@@ -78,10 +80,13 @@ async def delete_user(user_id: str, current_admin: CurrentAdminDep):
 async def get_my_transactions(
     current_user: CurrentUserDep,
     page: int = Query(1, ge=1),
-    size: int = Query(20, ge=1, le=100)
+    size: int = Query(20, ge=1, le=100),
+    transaction_type: Optional[TransactionType] = Query(None)
 ):
     """[User Only] Fetch the transaction history of the currently authenticated user."""
-    transactions = await user_service.get_user_transactions(current_user.id, page, size)
+    transactions = await user_service.get_user_transactions(
+        current_user.id, page, size, transaction_type
+    )
     return create_response(data=transactions)
 @router.get("/me/total-purchased-coins", response_model=ResponseSchema[dict])
 async def get_total_purchased_coins(current_user: CurrentUserDep):

@@ -103,11 +103,23 @@ class UserService:
         )
         return "Password successfully updated."
 
-    async def get_user_transactions(self, user_id: str, page: int = 1, size: int = 20) -> dict:
+    async def get_user_transactions(
+        self, 
+        user_id: str, 
+        page: int = 1, 
+        size: int = 20,
+        transaction_type: any = None # Type as any or import TransactionType locally
+    ) -> dict:
         skip = (page - 1) * size
-        total = await prisma.transaction.count(where={"userId": user_id})
+        
+        # Build filter
+        where_filter = {"userId": user_id}
+        if transaction_type:
+            where_filter["transactionType"] = transaction_type
+            
+        total = await prisma.transaction.count(where=where_filter)
         transactions = await prisma.transaction.find_many(
-            where={"userId": user_id},
+            where=where_filter,
             skip=skip,
             take=size,
             order={"createdAt": "desc"}
