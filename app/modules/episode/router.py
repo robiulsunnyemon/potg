@@ -16,6 +16,7 @@ async def create_episode(
     seriesId: str = Form(...),
     description: str = Form(...),
     episodeSerialNumber: int = Form(...),
+    falseviewers: int = Form(0),
     resolution: Optional[str] = Form("1080p"),
     thumbnail: UploadFile = File(...),
     video: UploadFile = File(...)
@@ -39,6 +40,7 @@ async def create_episode(
         seriesId=seriesId,
         description=description,
         episodeSerialNumber=episodeSerialNumber,
+        falseviewers=falseviewers,
         thumbnail=thumbnail_url,
         resolution=resolution
     )

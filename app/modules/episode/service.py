@@ -15,15 +15,25 @@ class EpisodeService:
         # Upload to Mux
         mux_data = await upload_video_to_mux(video_content)
             
-        return await prisma.episode.create(
-            data={
-                **data.model_dump(),
-                "muxAssetId": mux_data["asset_id"],
-                "muxPlaybackId": mux_data["playback_id"],
-                "duration": mux_data["duration"],
-                "isProcessing": False # Set to false since we've got the IDs
-            }
-        )
+        # Create episode and update series total_false_viewer
+        async with prisma.tx() as tx:
+            episode = await tx.episode.create(
+                data={
+                    **data.model_dump(),
+                    "muxAssetId": mux_data["asset_id"],
+                    "muxPlaybackId": mux_data["playback_id"],
+                    "duration": mux_data["duration"],
+                    "isProcessing": False
+                }
+            )
+            
+            if data.falseviewers > 0:
+                await tx.series.update(
+                    where={"id": data.seriesId},
+                    data={"total_false_viewer": {"increment": data.falseviewers}}
+                )
+            
+            return episode
 
     async def get_episodes(self, series_id: str) -> List[dict]:
         return await prisma.episode.find_many(
@@ -148,6 +158,21 @@ class EpisodeService:
             raise NotFoundException("Episode not found")
 
         update_data = data.model_dump(exclude_unset=True)
+        
+        # If falseviewers is being updated, sync with series
+        if "falseviewers" in update_data and update_data["falseviewers"] != episode.falseviewers:
+            diff = update_data["falseviewers"] - episode.falseviewers
+            async with prisma.tx() as tx:
+                updated_episode = await tx.episode.update(
+                    where={"id": episode_id},
+                    data=update_data
+                )
+                await tx.series.update(
+                    where={"id": episode.seriesId},
+                    data={"total_false_viewer": {"increment": diff}}
+                )
+                return updated_episode
+        
         return await prisma.episode.update(
             where={"id": episode_id},
             data=update_data
@@ -158,5 +183,14 @@ class EpisodeService:
         if not episode:
             raise NotFoundException("Episode not found")
             
-        await prisma.episode.delete(where={"id": episode_id})
+        async with prisma.tx() as tx:
+            # Decrement series total_false_viewer
+            if episode.falseviewers > 0:
+                await tx.series.update(
+                    where={"id": episode.seriesId},
+                    data={"total_false_viewer": {"decrement": episode.falseviewers}}
+                )
+            
+            await tx.episode.delete(where={"id": episode_id})
+        
         return "Episode has been deleted successfully"

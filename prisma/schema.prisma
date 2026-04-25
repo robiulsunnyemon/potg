@@ -150,6 +150,7 @@ model Series {
   title               String
   description         String
   totalViewers        Int                 @default(0)
+  total_false_viewer  Int                 @default(0)
   categoryId          String
   languageId          String
   keywords            String?
@@ -191,6 +192,7 @@ model Episode {
   seriesId            String
   description         String
   episodeSerialNumber Int
+  falseviewers        Int           @default(0)
   thumbnail           String?
   muxAssetId          String?
   muxPlaybackId       String?

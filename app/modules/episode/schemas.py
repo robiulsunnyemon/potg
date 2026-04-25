@@ -16,6 +16,7 @@ class EpisodeCreate(BaseModel):
     seriesId: str
     description: str
     episodeSerialNumber: int
+    falseviewers: int = 0
     thumbnail: Optional[str] = None
     resolution: Optional[str] = "1080p"
     status: SeriesStatus = SeriesStatus.DRAFT
@@ -24,6 +25,7 @@ class EpisodeUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     episodeSerialNumber: Optional[int] = None
+    falseviewers: Optional[int] = None
     thumbnail: Optional[str] = None
     videoFile: Optional[str] = None
     resolution: Optional[str] = None
@@ -31,6 +33,7 @@ class EpisodeUpdate(BaseModel):
 
 class EpisodeResponse(EpisodeBase):
     id: str
+    falseviewers: int
     thumbnail: Optional[str] = None
     muxAssetId: Optional[str] = None
     muxPlaybackId: Optional[str] = None

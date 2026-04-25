@@ -40,6 +40,7 @@ class EpisodeSummaryResponse(BaseModel):
     title: str
     description: str
     episodeSerialNumber: int
+    falseviewers: int = 0
     thumbnail: Optional[str] = None
     muxAssetId: Optional[str] = None
     muxPlaybackId: Optional[str] = None
@@ -63,6 +64,7 @@ class SeriesResponse(SeriesBase):
     id: str
     thumbnail: Optional[str] = None
     totalViewers: int = 0
+    total_false_viewer: int = 0
     createdAt: datetime
     updatedAt: datetime
     episodes: Optional[List[EpisodeSummaryResponse]] = []
