@@ -202,7 +202,7 @@ model Episode {
   status              SeriesStatus  @default(DRAFT)
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
-  series              Series        @relation(fields: [seriesId], references: [id])
+  series              Series        @relation(fields: [seriesId], references: [id],onDelete: Cascade)
   transactions        Transaction[]
   views               EpisodeView[]
   savedBy             SavedEpisode[]
