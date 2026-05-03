@@ -28,8 +28,24 @@ async def get_series_ratings(seriesId: str, isAdmin: bool = False):
 @router.patch("/{ratingId}", response_model=ResponseSchema[RatingResponse])
 async def update_rating_status(ratingId: str, isActive: bool, admin: CurrentAdminDep):
     """[Admin Only] Toggle rating active status."""
-    rating = await rating_service.update_rating_status(ratingId, isActive)
+    rating = await rating_service.update_rating(ratingId, isActive=isActive)
     return create_response(data=rating, message="Rating status updated successfully")
+
+@router.put("/{ratingId}", response_model=ResponseSchema[RatingResponse])
+async def update_rating(
+    ratingId: str,
+    admin: CurrentAdminDep,
+    userName: Optional[str] = Form(None),
+    stars: Optional[float] = Form(None),
+    feedback: Optional[str] = Form(None),
+    isActive: Optional[bool] = Form(None),
+    image: Optional[UploadFile] = File(None)
+):
+    """[Admin Only] Update a rating's details."""
+    rating = await rating_service.update_rating(
+        ratingId, userName, stars, feedback, image, isActive
+    )
+    return create_response(data=rating, message="Rating updated successfully")
 
 @router.delete("/{ratingId}", response_model=ResponseSchema[str])
 async def delete_rating(ratingId: str, admin: CurrentAdminDep):

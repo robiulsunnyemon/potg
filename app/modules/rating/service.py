@@ -53,10 +53,32 @@ class RatingService:
             "ratingCount": count
         }
 
-    async def update_rating_status(self, rating_id: str, is_active: bool):
+    async def update_rating(
+        self, 
+        rating_id: str, 
+        userName: Optional[str] = None, 
+        stars: Optional[float] = None, 
+        feedback: Optional[str] = None, 
+        image: Optional[UploadFile] = None,
+        isActive: Optional[bool] = None
+    ):
+        data = {}
+        if userName is not None:
+            data["userName"] = userName
+        if stars is not None:
+            data["stars"] = stars
+        if feedback is not None:
+            data["feedback"] = feedback
+        if isActive is not None:
+            data["isActive"] = isActive
+            
+        if image:
+            content = await image.read()
+            data["userImage"] = await upload_image_to_cloudinary(content, image.filename)
+
         return await prisma.rating.update(
             where={"id": rating_id},
-            data={"isActive": is_active}
+            data=data
         )
 
     async def delete_rating(self, rating_id: str):
