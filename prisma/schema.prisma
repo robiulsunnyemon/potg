@@ -40,23 +40,23 @@ model User {
   refreshTokens RefreshToken[]
   transactions Transaction[]
   episodeViews EpisodeView[]
-  savedEpisodes SavedEpisode[]
+  savedSeries SavedSeries[]
   rewardHistory UserRewardHistory[]
 
   @@map("users")
 }
 
-model SavedEpisode {
+model SavedSeries {
   id        String   @id @default(uuid())
   userId    String
-  episodeId String
+  seriesId  String
   createdAt DateTime @default(now())
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  episode Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, episodeId])
-  @@map("saved_episodes")
+  @@unique([userId, seriesId])
+  @@map("saved_series")
 }
 
 enum TransactionType {
@@ -168,6 +168,7 @@ model Series {
   language            Language            @relation(fields: [languageId], references: [id])
   episodes            Episode[]
   ratings             Rating[]
+  savedBy             SavedSeries[]
 
   @@map("series")
 }
@@ -205,7 +206,6 @@ model Episode {
   series              Series        @relation(fields: [seriesId], references: [id],onDelete: Cascade)
   transactions        Transaction[]
   views               EpisodeView[]
-  savedBy             SavedEpisode[]
 
   @@map("episodes")
 }
