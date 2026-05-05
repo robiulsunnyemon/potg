@@ -1,5 +1,5 @@
 from app.core.database import prisma
-from app.modules.coins.schemas import CoinPackageCreate, PaginatedCoinPackageResponse
+from app.modules.coins.schemas import CoinPackageCreate, PaginatedCoinPackageResponse, CoinPackageUpdate
 
 class CoinsService:
     async def create_package(self, data: CoinPackageCreate):
@@ -24,6 +24,15 @@ class CoinsService:
             total=total,
             packages=packages
         )
+
+    async def update_package(self, package_id: str, data: CoinPackageUpdate):
+        # Update coin package
+        update_data = data.model_dump(exclude_unset=True)
+        package = await prisma.coinpackage.update(
+            where={"id": package_id},
+            data=update_data
+        )
+        return package
 
     async def delete_package(self, package_id: str):
         await prisma.coinpackage.delete(where={"id": package_id})

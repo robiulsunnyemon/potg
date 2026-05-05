@@ -21,6 +21,12 @@ class CoinPackageResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class CoinPackageUpdate(BaseModel):
+    packageName: Optional[str] = None
+    baseCoins: Optional[int] = None
+    bonusCoins: Optional[int] = None
+    priceUsd: Optional[float] = None
+
 class PaginatedCoinPackageResponse(BaseModel):
     total: int
     packages: List[CoinPackageResponse]

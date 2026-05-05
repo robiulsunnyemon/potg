@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, status
 from app.modules.coins.service import CoinsService
-from app.modules.coins.schemas import CoinPackageCreate, CoinPackageResponse, PaginatedCoinPackageResponse
+from app.modules.coins.schemas import CoinPackageCreate, CoinPackageResponse, PaginatedCoinPackageResponse, CoinPackageUpdate
 from app.common.response import ResponseSchema, create_response
 from app.core.dependencies import CurrentAdminDep
 
@@ -21,6 +21,16 @@ async def get_coin_packages():
     """[Public/User] Fetch all available coin packages."""
     result = await coins_service.get_packages()
     return create_response(data=result)
+
+@router.patch("/{package_id}", response_model=ResponseSchema[CoinPackageResponse])
+async def update_coin_package(
+    package_id: str,
+    data: CoinPackageUpdate,
+    current_admin: CurrentAdminDep
+):
+    """[Admin Only] Update an existing coin package."""
+    package = await coins_service.update_package(package_id, data)
+    return create_response(data=package, message="Coin package updated successfully.")
 
 @router.delete("/{package_id}", response_model=ResponseSchema[str])
 async def delete_coin_package(
