@@ -20,11 +20,19 @@ class EpisodeSummary(BaseModel):
             return f"https://stream.mux.com/{self.muxPlaybackId}.m3u8"
         return None
 
-class SavedEpisodeResponse(BaseModel):
+class SeriesSummary(BaseModel):
     id: str
-    episodeId: str
+    title: str
+    description: str
+    thumbnail: Optional[str] = None
     createdAt: datetime
-    episode: EpisodeSummary
+    
+class SavedSeriesResponse(BaseModel):
+    id: str
+    seriesId: str
+    createdAt: datetime
+    series: SeriesSummary
+    lastViewedEpisode: Optional[EpisodeSummary] = None
 
     class Config:
         from_attributes = True
