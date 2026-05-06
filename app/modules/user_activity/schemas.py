@@ -10,6 +10,7 @@ class EpisodeSummary(BaseModel):
     thumbnail: Optional[str] = None
     muxPlaybackId: Optional[str] = None
     isProcessing: bool = False
+    falseviewers: int = 0
     saveCount: int = 0
     createdAt: datetime
 
@@ -25,6 +26,8 @@ class SeriesSummary(BaseModel):
     title: str
     description: str
     thumbnail: Optional[str] = None
+    total_false_viewer: int = 0
+    total_episode: int = 0
     createdAt: datetime
     
 class SavedSeriesResponse(BaseModel):
