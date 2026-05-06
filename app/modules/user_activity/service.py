@@ -62,6 +62,12 @@ class UserActivityService:
                 )
             
             saved_data = saved.model_dump() if hasattr(saved, 'model_dump') else saved.dict()
+            
+            # Fetch and set total episode count
+            total_episode = await prisma.episode.count(where={"seriesId": saved.seriesId})
+            if "series" in saved_data and saved_data["series"]:
+                saved_data["series"]["total_episode"] = total_episode
+            
             if last_viewed_episode:
                 saved_data["lastViewedEpisode"] = last_viewed_episode.model_dump() if hasattr(last_viewed_episode, 'model_dump') else last_viewed_episode.dict()
             else:
